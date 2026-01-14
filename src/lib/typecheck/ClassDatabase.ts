@@ -40,6 +40,7 @@ export type CompletionInformation = {
     retrigger?: boolean,
     text?: string,
     sortText?: string,
+    isSnippet?: boolean,
 };
 
 export type ClassFileEntry = {
@@ -224,6 +225,8 @@ export class ClassDatabase
                                 label: f.name?.text ?? '',
                                 sortText,
                                 kind: SemanticClass.FunctionReference,
+                                isSnippet: true,
+                                text: (f.name?.text ?? '') + '($1)',
                             })),
                             typedef.ast.variables.map(v => ({
                                 label: v.name?.text ?? '',
@@ -250,7 +253,10 @@ export class ClassDatabase
                 if (ast) {
                     let sortIndex = 0;
                     let sortText = '0';
-                    let results = [
+                    const isStatement = before.token.text === ';' || before.token.text === '{' || before.token.text === '}';
+                    const suffix = isStatement ? '($1);' : '($1)';
+                    
+                    let results: CompletionInformation[] = [
                         ...before.functionScope.fnArgs.map(v => ({
                             label: v.name?.text ?? '',
                             sortText,
@@ -271,6 +277,8 @@ export class ClassDatabase
                                 label: f.name?.text ?? '',
                                 sortText,
                                 kind: SemanticClass.FunctionReference,
+                                isSnippet: true,
+                                text: (f.name?.text ?? '') + suffix,
                             })),
                             cls.variables.map(v => ({
                                 label: v.name?.text ?? '',
@@ -292,6 +300,22 @@ export class ClassDatabase
                         label: s, kind: SemanticClass.EnumMember, sortText,
                     }));
                     results.push(...enumCompletions);
+
+
+                    const keywords = [
+                        'if', 'else', 'while', 'for', 'switch', 'case', 'default', 'break', 'continue', 'return', 'do', 'foreach'
+                    ];
+                    results.push(...keywords.map(k => ({
+                        label: k, kind: SemanticClass.Keyword, sortText
+                    })));
+
+                    const primitives = [
+                         'int', 'string', 'float', 'bool', 'byte', 'name', 'vector', 'rotator', 'int64' 
+                    ];
+                    results.push(...primitives.map(k => ({
+                        label: k, kind: SemanticClass.Keyword, sortText // Using Keyword for primitives as per provider mapping
+                    })));
+
                     return results;
                 }
             }

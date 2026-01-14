@@ -27,7 +27,13 @@ export class CompletionProvider implements vscode.CompletionItemProvider {
                     title: 'Complete superclass',
                 };
             }
-            if (r.text) obj.insertText = r.text;
+            if (r.text) {
+                if (r.isSnippet) {
+                    obj.insertText = new vscode.SnippetString(r.text);
+                } else {
+                    obj.insertText = r.text;
+                }
+            }
             results.push(obj);
         }
         return results;
