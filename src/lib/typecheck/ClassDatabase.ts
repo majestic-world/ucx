@@ -164,6 +164,15 @@ export class ClassDatabase
                     });
                 }
             }
+            if (before.token.textLower === 'var' || before.token.textLower === 'local') {
+                const primitives = [
+                    'int', 'string', 'float', 'bool', 'byte', 'name', 'vector', 'rotator', 'int64', 'array'
+                ];
+                const prioritySortText = '!';
+                results.push(...primitives.map(k => ({
+                    label: k, kind: SemanticClass.Keyword, sortText: prioritySortText
+                })));
+            }
             return results;
         }
         if (before.functionScope) {
