@@ -202,7 +202,7 @@
 	},
 	"scripts": {
 		"publish-all": "npm run npm-publish && npm run vsce-publish && npm run ovsx-publish",
-		"vscode:prepublish": "rm -rf ./out && npm run esbuild-base -- --minify && cp docs/README.vsix.md README.md",
+		"vscode:prepublish": "node ./scripts/prepublish.js",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
