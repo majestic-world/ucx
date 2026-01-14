@@ -303,11 +303,27 @@ export class ClassDatabase
 
 
                     const keywords = [
-                        'if', 'else', 'while', 'for', 'switch', 'case', 'default', 'break', 'continue', 'return', 'do', 'foreach'
+                        'if', 'else', 'while', 'for', 'case', 'default', 'break', 'continue', 'return', 'do', 'foreach'
                     ];
                     results.push(...keywords.map(k => ({
                         label: k, kind: SemanticClass.Keyword, sortText
                     })));
+
+                    results.push({
+                        label: 'switch',
+                        kind: SemanticClass.Keyword,
+                        sortText,
+                        isSnippet: true,
+                        text: 'switch($1)\n{\n\t$0\n}'
+                    });
+
+                    results.push({
+                        label: 'function',
+                        kind: SemanticClass.Keyword,
+                        sortText,
+                        isSnippet: true,
+                        text: 'function $1()\n{\n\t$0\n}'
+                    });
 
                     const primitives = [
                          'int', 'string', 'float', 'bool', 'byte', 'name', 'vector', 'rotator', 'int64' 
