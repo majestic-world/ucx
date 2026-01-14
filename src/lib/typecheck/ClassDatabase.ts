@@ -313,7 +313,7 @@ export class ClassDatabase
 
                     const prioritySortText = '!';
                     const keywords = [
-                        'if', 'else', 'while', 'for', 'default', 'break', 'continue', 'return', 'do', 'foreach'
+                        'local', 'if', 'else', 'while', 'for', 'default', 'break', 'continue', 'return', 'do', 'foreach'
                     ];
                     results.push(...keywords.map(k => ({
                         label: k, kind: SemanticClass.Keyword, sortText: prioritySortText
