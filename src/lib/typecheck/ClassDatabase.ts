@@ -302,34 +302,29 @@ export class ClassDatabase
                     results.push(...enumCompletions);
 
 
+                    const prioritySortText = '!';
                     const keywords = [
                         'if', 'else', 'while', 'for', 'case', 'default', 'break', 'continue', 'return', 'do', 'foreach'
                     ];
                     results.push(...keywords.map(k => ({
-                        label: k, kind: SemanticClass.Keyword, sortText
+                        label: k, kind: SemanticClass.Keyword, sortText: prioritySortText
                     })));
 
                     results.push({
                         label: 'switch',
                         kind: SemanticClass.Keyword,
-                        sortText,
+                        sortText: prioritySortText,
                         isSnippet: true,
                         text: 'switch($1)\n{\n\t$0\n}'
                     });
 
-                    results.push({
-                        label: 'function',
-                        kind: SemanticClass.Keyword,
-                        sortText,
-                        isSnippet: true,
-                        text: 'function $1()\n{\n\t$0\n}'
-                    });
+
 
                     const primitives = [
                          'int', 'string', 'float', 'bool', 'byte', 'name', 'vector', 'rotator', 'int64' 
                     ];
                     results.push(...primitives.map(k => ({
-                        label: k, kind: SemanticClass.Keyword, sortText // Using Keyword for primitives as per provider mapping
+                        label: k, kind: SemanticClass.Keyword, sortText: prioritySortText // Using Keyword for primitives as per provider mapping
                     })));
 
                     return results;
@@ -350,6 +345,22 @@ export class ClassDatabase
                     kind: SemanticClass.FunctionDeclaration,
                 });
             }
+
+             const prioritySortText = '!';
+
+            results.push({
+                label: 'function',
+                kind: SemanticClass.Keyword,
+                sortText: prioritySortText,
+                isSnippet: true,
+                text: 'function $1()\n{\n\t$0\n}'
+            });
+            
+            const keywords = ['var', 'struct', 'enum', 'const', 'state', 'ignores'];
+            results.push(...keywords.map(k => ({
+                label: k, kind: SemanticClass.Keyword, sortText: prioritySortText
+            })));
+
             return results;
         }
         return [];
