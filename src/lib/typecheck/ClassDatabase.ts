@@ -352,6 +352,7 @@ export class ClassDatabase
                     label: renderFnDocumentationPrototypeToString(fn.ast, undefined, fn.fnDefinition),
                     text: renderFnImplementationStubToString(fn.fnDefinition),
                     kind: SemanticClass.FunctionDeclaration,
+                    isSnippet: true,
                 });
             }
 

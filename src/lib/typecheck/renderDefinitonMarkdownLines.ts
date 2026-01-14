@@ -132,15 +132,7 @@ function renderFnImplementationStub(result: string[], def: UnrealClassFunction) 
     const name = def.name?.text ?? 'CustomFunction';
     result.push(name);
     renderFnArgList(result, def);
-    result.push('\n{\n\t'); 
-    if (def.returnType) result.push('return ');
-    result.push('super.', name, '(');
-    let separator = '';
-    for (const arg of def.fnArgs) {
-        result.push(separator, arg.name?.text ?? 'a');
-        separator = ', ';
-    }
-    result.push(');\n}\n');
+    result.push('\n{\n\t$0\n}\n'); 
 }
 
 function renderFnDecorators(result: string[], def: UnrealClassFunction) {
