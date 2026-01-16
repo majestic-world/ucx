@@ -20,6 +20,7 @@ import {
     RenameProvider,
     CreateFunctionCodeActionProvider,
 } from './extension/providers';
+import { smartBackspace } from './extension/commands/SmartBackspace';
 
 
 // this method is called when your extension is activated
@@ -57,6 +58,7 @@ export function activate(context: vscode.ExtensionContext) {
                 editor.revealRange(new vscode.Range(newPos, newPos));
             }
         }),
+        cmds.registerCommand('ucx.smartBackspace', smartBackspace),
         vscode.languages.registerFoldingRangeProvider(langId.uc, new FoldingRangeProvider()),
         diagnostics,
         vscode.workspace.onDidChangeTextDocument(event => diagnostics.updateDiagnostics(event.document)),

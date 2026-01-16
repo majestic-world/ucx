@@ -22,8 +22,19 @@
 			{
 				"command": "ucx.restartServer",
 				"title": "ucx: Restart UnrealScript Language Server"
-			}
+			},
+            {
+                "command": "ucx.smartBackspace",
+                "title": "Smart Backspace"
+            }
 		],
+        "keybindings": [
+            {
+                "command": "ucx.smartBackspace",
+                "key": "backspace",
+                "when": "editorTextFocus && editorLangId == unrealscript"
+            }
+        ],
 		"configuration": {
 			"title": "UCX",
 			"properties": {
