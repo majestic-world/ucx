@@ -58,8 +58,25 @@ export async function importUI() {
             return;
         }
 
-        // 5. Show QuickPick
-        const picked = await vscode.window.showQuickPick(elements.map(e => ({
+        // 5. Filter out already imported elements
+        const text = document.getText();
+        const importedPaths = new Set<string>();
+        // Match Get*Handle("Path.To.Element")
+        const importedRegex = /Get\w+Handle\s*\(\s*"([^"]+)"\s*\)/gi;
+        let match;
+        while ((match = importedRegex.exec(text)) !== null) {
+            importedPaths.add(match[1]);
+        }
+
+        const availableElements = elements.filter(e => !importedPaths.has(e.fullPath));
+
+        if (availableElements.length === 0) {
+            vscode.window.showInformationMessage('All elements from XML are already imported.');
+            return;
+        }
+
+        // 6. Show QuickPick
+        const picked = await vscode.window.showQuickPick(availableElements.map(e => ({
             label: e.name,
             description: e.type,
             detail: e.fullPath,
