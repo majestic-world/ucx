@@ -26,6 +26,10 @@
             {
                 "command": "ucx.smartBackspace",
                 "title": "Smart Backspace"
+            },
+            {
+                "command": "ucx.createClass",
+                "title": "Create UnrealScript Class"
             }
 		],
         "keybindings": [
@@ -33,6 +37,11 @@
                 "command": "ucx.smartBackspace",
                 "key": "backspace",
                 "when": "editorTextFocus && editorLangId == unrealscript"
+            },
+            {
+                "command": "ucx.createClass",
+                "key": "ctrl+alt+n",
+                "mac": "cmd+alt+n"
             }
         ],
 		"configuration": {
