@@ -32,6 +32,13 @@ Projeto original desenvolvido por [peterekepeter](https://github.com/peterekepet
     - Detecção de erros de sintaxe
     - Completar ponto e vírgula
     - Verificação de funções indefinidas
+    
+ - **Importação de UI (Lineage 2 Interface):**
+    - **Atalho `Alt + Insert`**: Abre lista de elementos do XML correspondente para importação rápida.
+    - **Filtro Inteligente**: Lista apenas elementos que ainda não foram importados no código.
+    - **Resolução de Conflitos**: Se o nome da variável já existir (de outro pai), renomeia automaticamente para `Nome_Pai`.
+    - **Inserção Ordenada**: Mantém a organização do código, inserindo novas variáveis e inicializações logo após as existentes.
+    - **Configuração Automática**: Detecta e salva o diretório dos arquivos XML do projeto.
 
  - **Destaque (Highlight):**
     - Gramática TextMate
