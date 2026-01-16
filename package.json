@@ -23,27 +23,36 @@
 				"command": "ucx.restartServer",
 				"title": "ucx: Restart UnrealScript Language Server"
 			},
-            {
-                "command": "ucx.smartBackspace",
-                "title": "Smart Backspace"
-            },
-            {
-                "command": "ucx.createClass",
-                "title": "Create UnrealScript Class"
-            }
+			{
+				"command": "ucx.smartBackspace",
+				"title": "Smart Backspace"
+			},
+			{
+				"command": "ucx.createClass",
+				"title": "Create UnrealScript Class"
+			},
+			{
+				"command": "ucx.importUI",
+				"title": "Import UI Element"
+			}
 		],
-        "keybindings": [
-            {
-                "command": "ucx.smartBackspace",
-                "key": "backspace",
-                "when": "editorTextFocus && editorLangId == unrealscript"
-            },
-            {
-                "command": "ucx.createClass",
-                "key": "ctrl+alt+n",
-                "mac": "cmd+alt+n"
-            }
-        ],
+		"keybindings": [
+			{
+				"command": "ucx.smartBackspace",
+				"key": "backspace",
+				"when": "editorTextFocus && editorLangId == unrealscript"
+			},
+			{
+				"command": "ucx.createClass",
+				"key": "ctrl+alt+n",
+				"mac": "cmd+alt+n"
+			},
+			{
+				"command": "ucx.importUI",
+				"key": "alt+insert",
+				"when": "editorTextFocus && editorLangId == unrealscript"
+			}
+		],
 		"configuration": {
 			"title": "UCX",
 			"properties": {
@@ -52,6 +61,12 @@
 					"type": "string",
 					"description": "All UnrealScript files from this path will be scanned and be used to provide definition and references in your project. This can be the folder where you exported all your scripts from the editor. Example: C:/Games/Ut99",
 					"order": -180
+				},
+				"ucx.xmlDirectory": {
+					"title": "XML Directory",
+					"type": "string",
+					"description": "Path to the directory containing UI XML files.",
+					"order": -175
 				},
 				"ucx.language.searchLibrarySymbols": {
 					"title": "Include library symbols",
@@ -251,5 +266,8 @@
 		"jest": "^29.7.0",
 		"jest-esbuild": "^0.3.0",
 		"typescript": "^5.3.3"
+	},
+	"dependencies": {
+		"fast-xml-parser": "^5.3.3"
 	}
 }
