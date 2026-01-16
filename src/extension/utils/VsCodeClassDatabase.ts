@@ -12,8 +12,15 @@ import { concurrentMap } from '../../lib/utils/concurrentMap';
 export class VsCodeClassDatabase {
 
     public libdb = new ClassDatabase();
-    private workspaceLoaded = false;
-    private libraryLoaded = false;
+    private _workspaceLoaded = false;
+    private _libraryLoaded = false;
+
+    get workspaceLoaded() { return this._workspaceLoaded; }
+    get libraryLoaded() { return this._libraryLoaded; }
+    
+    async ensureLoaded() {
+        await this.requiresWorkspaceAndLibraryLoaded(new vscode.CancellationTokenSource().token);
+    }
 
     async findSignature(vscodeuri: vscode.Uri, position: vscode.Position, cancelation: vscode.CancellationToken) {
         const uri = vscodeuri.toString();
@@ -106,24 +113,24 @@ export class VsCodeClassDatabase {
     }
 
     private async requiresWorkspaceLoaded(cancellation: vscode.CancellationToken) {
-        if (!this.workspaceLoaded) {
+        if (!this._workspaceLoaded) {
             // load workspace classses and try again
             await this.ensureWorkspaceIsNotOutdated(cancellation);
             if (cancellation.isCancellationRequested) return;
 
             // if this line is reached then workspace was fully scanned
-            this.workspaceLoaded = true;
+            this._workspaceLoaded = true;
         }
     }
 
     private async requiresLibraryLoaded(cancellation: vscode.CancellationToken) {
-        if (!this.libraryLoaded) {
+        if (!this._libraryLoaded) {
             // load library classes and try again
             await this.ensureLibraryIsNotOutdated(cancellation);
             if (cancellation.isCancellationRequested) return;
 
             // if this line is reached then library was fully scanned
-            this.libraryLoaded = true;
+            this._libraryLoaded = true;
         }
     }
 

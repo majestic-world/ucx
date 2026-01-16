@@ -1,7 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 
-import { diagnostics, resetExtensionState } from './extension/state';
+import { diagnostics, resetExtensionState, db } from './extension/state';
 import { vscode } from './extension/vscode';
 import { langId } from './extension/constants';
 import { 
@@ -28,6 +28,7 @@ import { smartBackspace } from './extension/commands/SmartBackspace';
 export function activate(context: vscode.ExtensionContext) {
 	
     resetExtensionState();
+    db.ensureLoaded();
 
     const semanticTokensProvider = new SemanticTokensProvider();
     const lang = vscode.languages;

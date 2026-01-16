@@ -14,7 +14,9 @@ export function processLinterRules(document: vscode.TextDocument, config: Extens
     // So we can pass db in the config object.
     const linterConfig = {
         ...config.linterConfiguration,
+        ...config.linterConfiguration,
         db: db.libdb,
+        vscodeDb: db,
         uri: document.uri.toString()
     };
     return lintAst(ast, linterConfig);

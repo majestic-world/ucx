@@ -28,6 +28,7 @@ export type AstLinterConfiguration =
     checkUnusedLocals: boolean,
     typeDeclarationSpacing: boolean,
     db?: any;
+    vscodeDb?: any;
     uri?: string;
 };
 
@@ -99,7 +100,7 @@ export function buildAstLinter(partialConfig?: Partial<AstLinterConfiguration>):
     }
 
     if (config.db) {
-        children.push(new UndefinedFunctionRule(config.db, config.uri));
+        children.push(new UndefinedFunctionRule(config.db, config.uri, config.vscodeDb));
     }
 
     return {
