@@ -179,6 +179,84 @@ async function injectCode(editor: vscode.TextEditor, element: UIElement) {
 
     const edits: { text: string, position: vscode.Position }[] = [];
 
+    // 0. Determine Unique Variable Name
+    let varName = element.name;
+    const parentName = getParentName(element.fullPath);
+    
+    // Check if variable already exists
+    // Regex to match "var Type Name;"
+    // We need to be careful: if it exists, is it the SAME element (same path)?
+    // If same path, we use the existing name (and maybe update/init if missing).
+    // If different path, we rename.
+    
+    const existingVarRegex = new RegExp(`var\\s+${element.type}\\s+(\\w+)\\s*;`, 'g');
+    let match;
+    let collisionFound = false;
+
+    // We scan all vars of this type to see if our name is taken
+    // Actually, simple check: does 'var Type varName;' exist?
+    // Or just 'varName' usage? Uniqueness is usually per class scope.
+    // Let's assume class scope uniqueness.
+    
+    // Helper to check if a specific var name exists
+    const varExists = (name: string) => new RegExp(`var\\s+${element.type}\\s+${name}\\s*;`, 'i').test(text);
+
+    if (varExists(varName)) {
+        // Variable with this name exists. Check if it's assigned to the same path.
+        // e.g. varName = GetHandle("Path");
+        // We look for ANY assignment to this varName with a GetHandle call.
+        const assignmentRegex = new RegExp(`${varName}\\s*=\\s*${element.func}\\s*\\(\\s*"([^"]+)"\\s*\\)\\s*;`, 'i');
+        const assignmentMatch = assignmentRegex.exec(text);
+
+        if (assignmentMatch) {
+            const existingPath = assignmentMatch[1];
+            if (existingPath !== element.fullPath) {
+                // Collision! Same name, different path.
+                collisionFound = true;
+            } else {
+                // Same name, same path. Already imported or compatible.
+                // We keep varName as is.
+            }
+        } else {
+            // Variable exists but not initialized? Or initialized with something else.
+            // Safe to assume collision if we are importing a new specific path.
+            // If the user manually defined 'var ButtonHandle MyBtn;' and we want to import 'MyBtn' from XML, 
+            // maybe they meant this one. But if they haven't initialized it, we might double init?
+            // User request implies: "If RegiFeeTitle_txt exists... create RegiFeeTitle_txt_Dialog_Wnd"
+            // So if it exists, we assume collision unless proven it's this exact one.
+            // But if it's this exact one, usually we'd see the init.
+            // Let's assume if var exists and we can't confirm it's ours, we rename to be safe OR we assume collision.
+            // Given the user prompt "existen 2 campos com o mesmo nome... crie a regra", implies distinct elements.
+            // Unique path = unique element.
+            collisionFound = true;
+        }
+    }
+
+    if (collisionFound) {
+        // Strategy: {name}_{parent}
+        // If parent is empty/root, maybe just keep name? But we found collision.
+        // If Parent is not empty:
+        if (parentName) {
+            varName = `${element.name}_${parentName}`;
+            
+            // Check again if THIS new name exists
+             if (varExists(varName)) {
+                 // Check if it matches OUR path
+                const assignmentRegex = new RegExp(`${varName}\\s*=\\s*${element.func}\\s*\\(\\s*"([^"]+)"\\s*\\)\\s*;`, 'i');
+                const assignmentMatch = assignmentRegex.exec(text);
+                 if (assignmentMatch && assignmentMatch[1] === element.fullPath) {
+                     // It's already imported with the suffixed name. Good.
+                     collisionFound = false; // We use this name
+                 } else {
+                     // Even the suffixed name is taken by something else?
+                     // Edge case. We could append more parents or numbers.
+                     // For now, let's leave it as is or maybe alert.
+                     // User only asked for {name}_{parent}.
+                 }
+             }
+        }
+    }
+
     // 1. Prepare Variable Declaration
     const classRegex = /class\s+\w+\s+(?:extends|expands)\s+\w+[\s\S]*?;/i;
     const classMatch = classRegex.exec(text);
@@ -188,10 +266,9 @@ async function injectCode(editor: vscode.TextEditor, element: UIElement) {
          return;
     }
 
-    const varDecl = `var ${element.type} ${element.name};`;
-    const varRegex = new RegExp(`var\\s+${element.type}\\s+${element.name}\\s*;`, 'i');
-
-    if (!varRegex.test(text)) {
+    const varDecl = `var ${element.type} ${varName};`;
+    // Check uniqueness again just for insertion logic
+    if (!varExists(varName)) {
         const endOfClassDecl = classMatch.index + classMatch[0].length;
         edits.push({
             text: `\n${varDecl}`,
@@ -203,7 +280,7 @@ async function injectCode(editor: vscode.TextEditor, element: UIElement) {
     const onLoadRegex = /event\s+OnLoad\s*\(\s*\)/i;
     const onLoadMatch = onLoadRegex.exec(text);
     
-    const initLine = `${element.name} = ${element.func}("${element.fullPath}");`;
+    const initLine = `${varName} = ${element.func}("${element.fullPath}");`;
 
     if (onLoadMatch) {
         // Find the opening brace after OnLoad
@@ -213,9 +290,9 @@ async function injectCode(editor: vscode.TextEditor, element: UIElement) {
             const absoluteBraceIndex = onLoadMatch.index + braceIndex;
             const position = document.positionAt(absoluteBraceIndex + 1);
             
-            // Check if already initialized to avoid duplication
-            // We check the specific assignment line
-            const assignRegex = new RegExp(`${element.name}\\s*=\\s*${element.func}\\s*\\(\\s*"${element.fullPath.replace(/\./g, '\\.')}"\\s*\\)\\s*;`, 'i');
+            // Check if already initialized to the SAME path (using any variable name? No, we mapped to varName)
+            // If we decided varName is our target variable, we check if IT is initialized.
+            const assignRegex = new RegExp(`${varName}\\s*=\\s*${element.func}\\s*\\(\\s*"${element.fullPath.replace(/\./g, '\\.')}"\\s*\\)\\s*;`, 'i');
             
             if (!assignRegex.test(text)) {
                  edits.push({
@@ -232,14 +309,12 @@ async function injectCode(editor: vscode.TextEditor, element: UIElement) {
         const onLoadBlock = `\n\nevent OnLoad()\n{\n\t${initLine}\n}\n`;
         const lastLine = document.lineCount;
 
-        // If we are appending OnLoad, we prefer before DefaultProperties
         if (dpMatch) {
             edits.push({
                 text: onLoadBlock,
                 position: document.positionAt(dpMatch.index)
             });
         } else {
-            // Append to end of file, assuming inside class
             edits.push({
                 text: onLoadBlock,
                 position: new vscode.Position(lastLine, 0)
@@ -253,8 +328,16 @@ async function injectCode(editor: vscode.TextEditor, element: UIElement) {
                 editBuilder.insert(edit.position, edit.text);
             });
         });
-        vscode.window.showInformationMessage(`Imported ${element.name}`);
+        vscode.window.showInformationMessage(`Imported ${varName}`);
     } else {
-        vscode.window.showInformationMessage(`${element.name} is already imported.`);
+        vscode.window.showInformationMessage(`${varName} is already imported.`);
     }
+}
+
+function getParentName(fullPath: string): string {
+    const parts = fullPath.split('.');
+    if (parts.length > 1) {
+        return parts[parts.length - 2];
+    }
+    return '';
 }
