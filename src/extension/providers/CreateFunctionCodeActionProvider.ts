@@ -81,24 +81,60 @@ export class CreateFunctionCodeActionProvider implements CodeActionProvider {
         const argString = newArgs.map(arg => `${arg.type} ${arg.name}`).join(', ');
         
         const lastFn = ast.functions[ast.functions.length - 1];
-        let insertLine = lastFn ? (lastFn.bodyLastToken?.line ?? 0) + 1 : (ast.classDeclarationFirstToken?.line ?? 0) + 1;
+        let insertLine = -1;
+
+        // Find the first function that is NOT an event
+        const firstNonEventFunc = ast.functions.find((f: any) => !f.isEvent);
+
+        if (firstNonEventFunc) {
+            // Insert before the first function
+            // We use the name token line as a safe approximation for the start of the function
+            if (firstNonEventFunc.name) {
+                insertLine = firstNonEventFunc.name.line;
+            } else if (firstNonEventFunc.bodyFirstToken) {
+                 insertLine = firstNonEventFunc.bodyFirstToken.line;
+            } else {
+                 // Fallback if no tokens (shouldn't happen for valid func)
+                 insertLine = (lastFn?.bodyLastToken?.line ?? 0) + 1;
+            }
+        } else {
+            // No non-event functions. Insert after the last event (if any).
+             // If all functions are events, lastFn is the last event.
+            if (lastFn) {
+                insertLine = (lastFn.bodyLastToken?.line ?? 0) + 1;
+            } else {
+                // No functions or events at all. Insert at the end or after class decl.
+                // Try to find the last meaningful token in the class to append after.
+                // We'll default to end of document (or logic similar to before).
+                insertLine = (ast.classDeclarationFirstToken?.line ?? 0) + 1;
+                // Check variables to push it further down? 
+                // For now, let's just use document end if no functions exist, 
+                // effectively similar to old behavior but handling the 'no functions' case.
+                 insertLine = document.lineCount; 
+            }
+        }
+        
         if (insertLine < 0) insertLine = document.lineCount;
 
-        const newText = `\n\nfunction ${callerToken.token.text}(${argString})\n{\n\t\n}`;
+        let newText = "";
+        let cursorOffset = 0;
+
+        if (firstNonEventFunc) {
+            // Inserting before an existing function.
+            newText = `function ${callerToken.token.text}(${argString})\n{\n\t\n}\n\n`;
+            cursorOffset = 2;
+        } else {
+            // Inserting after the last event (or at end).
+            newText = `\n\nfunction ${callerToken.token.text}(${argString})\n{\n\t\n}`;
+            cursorOffset = 4;
+        }
         
         action.edit.insert(document.uri, new Position(insertLine, 0), newText);
 
-        // Move cursor to inside the function body
-        // insertLine is where we started.
-        // Line + 0: \n
-        // Line + 1: \n
-        // Line + 2: function ...
-        // Line + 3: {
-        // Line + 4: \t (cursor here)
         action.command = {
             command: 'ucx.moveCursor',
             title: 'Move Cursor',
-            arguments: [document.uri.toString(), insertLine + 3, 1] 
+            arguments: [document.uri.toString(), insertLine + cursorOffset, 1] 
         };
         
         result.push(action);
