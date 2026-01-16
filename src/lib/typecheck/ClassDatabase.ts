@@ -313,11 +313,35 @@ export class ClassDatabase
 
                     const prioritySortText = '!';
                     const keywords = [
-                        'local', 'if', 'else', 'while', 'for', 'default', 'break', 'continue', 'return', 'do', 'foreach',
+                        'local', 'while', 'for', 'default', 'break', 'continue', 'return;', 'do', 'foreach',
                     ];
                     results.push(...keywords.map(k => ({
                         label: k, kind: SemanticClass.Keyword, sortText: prioritySortText
                     })));
+
+                    results.push({
+                        label: 'if',
+                        kind: SemanticClass.Keyword,
+                        sortText: prioritySortText,
+                        isSnippet: true,
+                        text: 'if( $1 )\n{\n\t$0\n}'
+                    });
+
+                    results.push({
+                        label: 'else',
+                        kind: SemanticClass.Keyword,
+                        sortText: prioritySortText,
+                        isSnippet: true,
+                        text: 'else\n{\n\t$0\n}'
+                    });
+
+                    results.push({
+                        label: 'else if',
+                        kind: SemanticClass.Keyword,
+                        sortText: prioritySortText,
+                        isSnippet: true,
+                        text: 'else if( $1 )\n{\n\t$0\n}'
+                    });
 
                     results.push({
                         label: 'switch',
