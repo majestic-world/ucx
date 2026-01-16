@@ -11,3 +11,4 @@ export * from './SemanticTokensProvider';
 export * from './SignatureProvider';
 export * from './TypeHierarchyProvider';
 export * from './WorkspaceSymbolProvider';
+export * from './CreateFunctionCodeActionProvider';

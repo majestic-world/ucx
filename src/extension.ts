@@ -18,6 +18,7 @@ import {
     SignatureProvider,
     ReferenceProvider,
     RenameProvider,
+    CreateFunctionCodeActionProvider,
 } from './extension/providers';
 
 
@@ -44,8 +45,18 @@ export function activate(context: vscode.ExtensionContext) {
         lang.registerCompletionItemProvider(langId.uc, completion, "'", '.', '<'), // invoke after trigger chars
         lang.registerReferenceProvider(langId.uc, new ReferenceProvider()),
         lang.registerRenameProvider(langId.uc, new RenameProvider()),
+        lang.registerCodeActionsProvider(langId.uc, new CreateFunctionCodeActionProvider()),
         lang.registerDocumentSemanticTokensProvider(langId.uc, semanticTokensProvider, semanticTokensProvider.legend),
         cmds.registerCommand('ucx.restartServer', resetExtensionState),
+        cmds.registerCommand('ucx.moveCursor', async (uri: string, line: number, character: number) => {
+            const editor = vscode.window.activeTextEditor;
+            if (editor && editor.document.uri.toString() === uri) {
+                const newPos = new vscode.Position(line, character);
+                const newSelection = new vscode.Selection(newPos, newPos);
+                editor.selection = newSelection;
+                editor.revealRange(new vscode.Range(newPos, newPos));
+            }
+        }),
         vscode.languages.registerFoldingRangeProvider(langId.uc, new FoldingRangeProvider()),
         diagnostics,
         vscode.workspace.onDidChangeTextDocument(event => diagnostics.updateDiagnostics(event.document)),
