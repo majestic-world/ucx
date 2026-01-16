@@ -4,5 +4,4 @@ node_modules
 .vscode-test/
 *.cpuprofile
 src/lib/coverage
-README.md
 testdata
