@@ -11,7 +11,7 @@ import { concurrentMap } from '../../lib/utils/concurrentMap';
 
 export class VsCodeClassDatabase {
 
-    private libdb = new ClassDatabase();
+    public libdb = new ClassDatabase();
     private workspaceLoaded = false;
     private libraryLoaded = false;
 

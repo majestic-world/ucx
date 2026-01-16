@@ -11,6 +11,7 @@ import { SemicolonAutoFixer } from "./SemicolonAutoFixer";
 import { ReturnStatementCheck } from "./ReturnStatementCheck";
 import { UnusedLocalsCheck } from "./UnusedLocalsCheck";
 import { TypeDeclarationSpacing } from "./TypeDeclarationSpacing";
+import { UndefinedFunctionRule } from "./UndefinedFunctionRule";
 
 export type AstLinterConfiguration =
 {
@@ -26,6 +27,8 @@ export type AstLinterConfiguration =
     checkReturnTypes: boolean,
     checkUnusedLocals: boolean,
     typeDeclarationSpacing: boolean,
+    db?: any;
+    uri?: string;
 };
 
 export const DEFAULT_AST_LINTER_CONFIGURATION: AstLinterConfiguration = {
@@ -93,6 +96,10 @@ export function buildAstLinter(partialConfig?: Partial<AstLinterConfiguration>):
 
     if (config.typeDeclarationSpacing) {
         children.push(new TypeDeclarationSpacing());
+    }
+
+    if (config.db) {
+        children.push(new UndefinedFunctionRule(config.db, config.uri));
     }
 
     return {
