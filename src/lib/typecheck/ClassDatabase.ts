@@ -356,7 +356,7 @@ export class ClassDatabase
                         kind: SemanticClass.Keyword,
                         sortText: prioritySortText,
                         isSnippet: true,
-                        text: 'case "$1":\n\t$0\n\tbreak;'
+                        text: 'case $1:\n\t$0\n\tbreak;'
                     });
 
 
