@@ -255,7 +255,7 @@ export class ClassDatabase
                     return results.flat();
                 }
             }
-            else if (before.token.type === SemanticClass.None && (before.token.text === ";" || before.token.text === '{' || before.token.text === '(' || before.token.text === ',') 
+            else if (before.token.type === SemanticClass.None && (before.token.text === ";" || (before.token.text === '}' && before.token !== before.functionScope.bodyLastToken) || before.token.text === '{' || before.token.text === '(' || before.token.text === ',') 
                 || before.token.type === SemanticClass.Operator || before.token.type === SemanticClass.Comment)
             {
                 // expression completion
