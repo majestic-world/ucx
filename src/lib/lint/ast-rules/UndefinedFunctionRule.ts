@@ -93,7 +93,13 @@ export class UndefinedFunctionRule implements AstBasedLinter {
     }
 
     private shouldIgnore(name: string): boolean {
-        const ignored = ['if', 'else', 'switch', 'case', 'while', 'for', 'foreach', 'return', 'break', 'continue', 'true', 'false', 'default', 'new', 'class', 'self', 'none', 'goto', 'stop', 'assert', 'log'];
+        const ignored = [
+            'if', 'else', 'switch', 'case', 'while', 'for', 'foreach', 'return', 'break', 'continue', 'true', 'false', 'default', 'new', 'class', 'self', 'none', 'goto', 'stop', 'assert', 'log',
+            // Primitives used as casts
+            'int', 'string', 'float', 'int64', 'byte', 'bool', 'name', 'vector', 'rotator', 'array',
+            // Global functions
+            'len', 'spawn', 'vect'
+        ];
         return ignored.includes(name);
     }
 }
