@@ -49,12 +49,26 @@ export async function createClass() {
     const targetFile = vscode.Uri.joinPath(targetDir, fileName);
 
     const className = path.basename(fileName, '.uc');
-    const content = `class ${className} extends UICommonAPI;\n\n`;
+    const content = `class ${className} extends UICommonAPI;
+
+var WindowHandle Me;
+
+event OnLoad()
+{
+	Me = GetWindowHandle("${className}");
+}
+
+`;
 
     try {
         await vscode.workspace.fs.writeFile(targetFile, Buffer.from(content, 'utf8'));
         const doc = await vscode.workspace.openTextDocument(targetFile);
-        await vscode.window.showTextDocument(doc);
+        const editor = await vscode.window.showTextDocument(doc);
+        const lastLine = doc.lineCount - 1;
+        const lastChar = doc.lineAt(lastLine).text.length;
+        const newPos = new vscode.Position(lastLine, lastChar);
+        editor.selection = new vscode.Selection(newPos, newPos);
+        editor.revealRange(new vscode.Range(newPos, newPos));
     } catch (e) {
         vscode.window.showErrorMessage(`Failed to create file: ${e}`);
     }
