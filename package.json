@@ -1,8 +1,8 @@
 {
 	"name": "ucx",
 	"displayName": "ucx",
-	"description": "Dedicated language support for Unreal Engine 1 UnrealScript",
-	"version": "0.27.7",
+	"description": "Dedicated language support for Unreal Engine 2.5 UnrealScript",
+	"version": "0.29.0",
 	"icon": "assets/ucx.png",
 	"repository": "https://github.com/majestic-world/ucx",
 	"publisher": "majestic-world",

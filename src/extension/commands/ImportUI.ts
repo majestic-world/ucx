@@ -286,10 +286,34 @@ async function injectCode(editor: vscode.TextEditor, element: UIElement) {
     const varDecl = `var ${element.type} ${varName};`;
     // Check uniqueness again just for insertion logic
     if (!varExists(varName)) {
-        const endOfClassDecl = classMatch.index + classMatch[0].length;
+        // Search for the last "var ...Handle ...;" to insert AFTER it
+        // We match `var` followed by anything, then `Handle`, check line by line?
+        // Let's rely on regex `var\s+\w+Handle\s+.*;` global search.
+        const handleVarRegex = /var\s+\w+Handle\s+.*;/g;
+        let lastMatch: RegExpExecArray | null = null;
+        let tempMatch;
+        while ((tempMatch = handleVarRegex.exec(text)) !== null) {
+            lastMatch = tempMatch;
+        }
+
+        let insertPos: vscode.Position;
+        let varDeclWithPrefix: string;
+        if (lastMatch) {
+            // Insert after the last handle variable
+            const endPos = document.positionAt(lastMatch.index + lastMatch[0].length);
+            insertPos = endPos;
+            varDeclWithPrefix = `\n${varDecl}`;
+        } else {
+            // No handles yet, insert after class declaration
+            const endOfClassDecl = classMatch.index + classMatch[0].length;
+            insertPos = document.positionAt(endOfClassDecl);
+            varDeclWithPrefix = `\n${varDecl}`;
+        }
+        
+        // Minor formatting: If inserting after class, we might want double newline if not present, but simple newline is safe.
         edits.push({
-            text: `\n${varDecl}`,
-            position: document.positionAt(endOfClassDecl)
+            text: varDeclWithPrefix,
+            position: insertPos
         });
     }
 
@@ -301,22 +325,61 @@ async function injectCode(editor: vscode.TextEditor, element: UIElement) {
 
     if (onLoadMatch) {
         // Find the opening brace after OnLoad
-        const afterOnLoad = text.substring(onLoadMatch.index);
-        const braceIndex = afterOnLoad.indexOf('{');
+        const afterOnLoadMatch = text.substring(onLoadMatch.index);
+        const braceIndex = afterOnLoadMatch.indexOf('{');
+        
         if (braceIndex !== -1) {
-            const absoluteBraceIndex = onLoadMatch.index + braceIndex;
-            const position = document.positionAt(absoluteBraceIndex + 1);
+             const absoluteBraceIndex = onLoadMatch.index + braceIndex;
+             // Check if already initialized to the SAME path
+             const assignRegex = new RegExp(`${varName}\\s*=\\s*${element.func}\\s*\\(\\s*"${element.fullPath.replace(/\./g, '\\.')}"\\s*\\)\\s*;`, 'i');
             
-            // Check if already initialized to the SAME path (using any variable name? No, we mapped to varName)
-            // If we decided varName is our target variable, we check if IT is initialized.
-            const assignRegex = new RegExp(`${varName}\\s*=\\s*${element.func}\\s*\\(\\s*"${element.fullPath.replace(/\./g, '\\.')}"\\s*\\)\\s*;`, 'i');
-            
-            if (!assignRegex.test(text)) {
-                 edits.push({
-                    text: `\n\t${initLine}`,
-                    position: position
-                 });
-            }
+             if (!assignRegex.test(text)) {
+                 // Scan for the last "Get...Handle(" inside OnLoad
+                 // We need to limit search to inside OnLoad block roughly.
+                 // Finding end of OnLoad is tricky without tokenizer.
+                 // Heuristic: Search for ` = Get...Handle(...)` starting from OnLoad pos.
+                 // We assume handles are grouped.
+                 // We search from OnLoad start, but we want the *last* one.
+                 // If we find one, we use it. If not, insert after `{`.
+                 
+                 // Look for assignments *after* OnLoad header
+                 const textFromGeneric = text.substring(absoluteBraceIndex); // from { onwards
+                 const getHandleRegex = /=\s*Get\w+Handle\s*\(.*\)\s*;/g;
+                 
+                 let lastGetHandleIndex = -1;
+                 let lastGetHandleLength = 0;
+                 let m;
+                 
+                 // Note: this regex might match stuff outside OnLoad if OnLoad is short and user has other functions.
+                 // But typically Get*Handle is only in OnLoad.
+                 // Risk: confusing with other functions.
+                 // We could check indentation?
+                 // Safer: Just find assignments up to next `event` or `function` keyword?
+                 // Or just last one we find that looks like an init.
+                 
+                 // Let's limit search? No, `Get...Handle` is specific enough usually.
+                 while ((m = getHandleRegex.exec(textFromGeneric)) !== null) {
+                     // Check if this match is "too far"? e.g. different function.
+                     // It's hard to know. But usually these are grouped.
+                     lastGetHandleIndex = m.index;
+                     lastGetHandleLength = m[0].length;
+                 }
+                 
+                 if (lastGetHandleIndex !== -1) {
+                     // Insert after the last GetHandle
+                     const absPos = absoluteBraceIndex + lastGetHandleIndex + lastGetHandleLength;
+                     edits.push({
+                        text: `\n\t${initLine}`,
+                        position: document.positionAt(absPos)
+                     });
+                 } else {
+                     // Insert after brace {
+                     edits.push({
+                        text: `\n\t${initLine}`,
+                        position: document.positionAt(absoluteBraceIndex + 1)
+                     });
+                 }
+             }
         }
     } else {
         // Create OnLoad event
