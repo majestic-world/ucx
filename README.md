@@ -33,6 +33,9 @@ Projeto original desenvolvido por [peterekepeter](https://github.com/peterekepet
     - Completar ponto e vírgula
     - Verificação de funções indefinidas
     
+ - **Geração de Arquivos:**
+    - **Criar Classe (`Ctrl + Alt + N`)**: Cria rapidamente um novo arquivo `.uc` já com a estrutura básica, incluindo declaração `WindowHandle Me` e evento `OnLoad`.
+
  - **Importação de UI (Lineage 2 Interface):**
     - **Atalho `Alt + Insert`**: Abre lista de elementos do XML correspondente para importação rápida.
     - **Filtro Inteligente**: Lista apenas elementos que ainda não foram importados no código.
