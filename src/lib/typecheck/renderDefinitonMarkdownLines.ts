@@ -171,12 +171,31 @@ function renderFnDecorators(result: string[], def: UnrealClassFunction) {
     if (def.returnType) result.push(def.returnType.text, ' ');
 }
 
+const PARAM_NAME_OVERRIDES: Record<string, Record<string, string>> = {
+    'OnEvent': { 'a_EventID': 'eventId', 'a_Param': 'param' },
+    'OnClickButton': { 'strID': 'name' },
+    'OnCompleteEditBox': { 'strID': 'id' },
+    'OnChangeEditBox': { 'strID': 'id' },
+    'OnClickCheckBox': { 'strID': 'id' },
+    'OnClickListCtrlRecord': { 'strID': 'index' },
+    'OnDBClickListCtrlRecord': { 'strID': 'index' },
+    'OnDBClickItem': { 'strID': 'id', 'Index': 'index' },
+    'OnClickButtonWithHandle': { 'a_ButtonHandle': 'handle' }
+};
+
 function renderFnArgList(result: string[], def: UnrealClassFunction) {
     if (def.fnArgs.length > 0) {
         let separator = ('(');
+        const functionName = def.name?.text;
+        const renames = functionName ? PARAM_NAME_OVERRIDES[functionName] : undefined;
+
         for (const a of def.fnArgs) {
             result.push(separator);
-            renderFunctionParameterIntoResult(a, result);
+            let argToRender = a;
+            if (renames && a.name && renames[a.name.text]) {
+                argToRender = { ...a, name: { ...a.name, text: renames[a.name.text] } };
+            }
+            renderFunctionParameterIntoResult(argToRender, result);
             separator = ', ';
         }
         
