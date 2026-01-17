@@ -206,6 +206,14 @@ export class ClassDatabase
                 if (beforeDot) {
                     const token = this.findToken(uri, beforeDot.line, beforeDot.position);
                     const symboldef = this.findDefinition(token);
+                    const def = symboldef.localDefinition ?? symboldef.paramDefinition ?? symboldef.varDefinition;
+                    if (def && def.type?.textLower === 'array') {
+                        return [
+                            { label: 'Length', kind: SemanticClass.VariableReference, sortText: '!' },
+                            { label: 'Insert', kind: SemanticClass.FunctionReference, isSnippet: true, text: 'Insert($1, $2)', sortText: '!' },
+                            { label: 'Remove', kind: SemanticClass.FunctionReference, isSnippet: true, text: 'Remove($1, $2)', sortText: '!' },
+                        ];
+                    }
                     let typedef = this.findTypeOfDefinition(symboldef);
                     let results: CompletionInformation[][] = [];
                     let sortIndex = 0;
