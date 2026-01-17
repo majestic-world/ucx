@@ -196,7 +196,9 @@ export class ClassDatabase
                 let index = before.token.index - 1;
                 let beforeDot = ast.tokens[index];
                 let count = 0;
+                let isIndexed = false;
                 while (beforeDot && (beforeDot.text === ']' || count > 0)) {
+                    if (beforeDot.text === ']') isIndexed = true;
                     const txt = ast.tokens[index].text;
                     if (txt === ']') count += 1;
                     else if (txt === '[') count -= 1;
@@ -204,16 +206,33 @@ export class ClassDatabase
                     beforeDot = ast.tokens[index];
                 }
                 if (beforeDot) {
-                    const token = this.findToken(uri, beforeDot.line, beforeDot.position);
-                    const symboldef = this.findDefinition(token);
+                    // Resolve chain (e.g. record.List)
+                    const chain = this.getMemberChain(ast.tokens, index);
+                    let symboldef: TokenInformation = { found: false };
+
+                    if (chain.length > 0) {
+                        let token = this.findToken(uri, chain[0].line, chain[0].position);
+                        symboldef = this.findDefinition(token);
+                        
+                        for (let i = 1; i < chain.length; i++) {
+                             let parentType = this.findTypeOfDefinition(symboldef);
+                             const memberQuery = { token: chain[i], ast, uri }; 
+                             symboldef = this.findMemberDefinition(parentType, memberQuery);
+                             if (!symboldef.found) break;
+                        }
+                    }
+
                     const def = symboldef.localDefinition ?? symboldef.paramDefinition ?? symboldef.varDefinition;
-                    if (def && def.type?.textLower === 'array') {
-                        return [
+                    
+                    // ARRAY PROPS (Only if NOT indexed)
+                    if (!isIndexed && def && def.type?.textLower === 'array') {
+                         return [
                             { label: 'Length', kind: SemanticClass.VariableReference, sortText: '!' },
                             { label: 'Insert', kind: SemanticClass.FunctionReference, isSnippet: true, text: 'Insert($1, $2)', sortText: '!' },
                             { label: 'Remove', kind: SemanticClass.FunctionReference, isSnippet: true, text: 'Remove($1, $2)', sortText: '!' },
                         ];
                     }
+
                     let typedef = this.findTypeOfDefinition(symboldef);
                     let results: CompletionInformation[][] = [];
                     let sortIndex = 0;
