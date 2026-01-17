@@ -166,7 +166,7 @@ export class ClassDatabase
             }
             if (before.token.textLower === 'var' || before.token.textLower === 'local') {
                 const primitives = [
-                    'int', 'string', 'float', 'bool', 'byte', 'name', 'vector', 'rotator', 'int64', 'array', 'ItemInfo', 'LVDataRecord'
+                    'int', 'string', 'float', 'bool', 'byte', 'name', 'vector', 'rotator', 'int64', 'array', 'ItemInfo', 'ItemID', 'LVDataRecord'
                 ];
                 const prioritySortText = '!';
                 results.push(...primitives.map(k => ({
@@ -389,7 +389,7 @@ export class ClassDatabase
 
 
                     const primitives = [
-                         'int', 'string', 'float', 'bool', 'byte', 'name', 'vector', 'rotator', 'int64', 'ItemInfo', 'LVDataRecord'
+                         'int', 'string', 'float', 'bool', 'byte', 'name', 'vector', 'rotator', 'int64', 'ItemInfo', 'ItemID', 'LVDataRecord'
                     ];
                     results.push(...primitives.map(k => ({
                         label: k, kind: SemanticClass.Keyword, sortText: prioritySortText // Using Keyword for primitives as per provider mapping
